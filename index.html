@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduPortál © FM</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+
+    :root {
+        --primary: #6366f1;
+        --primary-hover: #4f46e5;
+        --bg: #f8fafc;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --glass: rgba(255, 255, 255, 0.8);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body { 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
+        background-color: var(--bg);
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    .container { width: 100%; max-width: 800px; padding: 40px 20px; text-align: center; }
+
+    h1 { font-size: 3rem; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 12px; }
+    h1 span { color: var(--primary); }
+    .subtitle { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 40px; }
+
+    /* Card Grid */
+    .card-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+        gap: 24px; 
+    }
+
+    .card { 
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 40px 30px; 
+        border-radius: 24px; 
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.03);
+        cursor: pointer; 
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .card:hover { 
+        transform: translateY(-10px); 
+        box-shadow: 0 30px 60px rgba(99, 102, 241, 0.1);
+        border-color: var(--primary);
+    }
+
+    .card-icon { font-size: 3rem; margin-bottom: 16px; display: block; }
+    .card h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
+    .card p { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
+
+    /* Modal Styling */
+    .overlay { 
+        position: fixed; inset: 0; 
+        background: rgba(15, 23, 42, 0.3); 
+        backdrop-filter: blur(12px); 
+        display: none; align-items: center; justify-content: center; 
+        z-index: 100; opacity: 0; transition: opacity 0.3s;
+    }
+    .overlay.active { display: flex; opacity: 1; }
+
+    .modal { 
+        background: white; 
+        padding: 40px; 
+        border-radius: 30px; 
+        width: 100%; max-width: 400px; 
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        transform: scale(0.9); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .overlay.active .modal { transform: scale(1); }
+
+    .modal h3 { font-size: 1.5rem; font-weight: 800; margin-bottom: 24px; }
+
+    input { 
+        width: 100%; padding: 16px; margin-bottom: 16px; 
+        border-radius: 16px; border: 2px solid #e2e8f0; 
+        outline: none; font-family: inherit; font-weight: 600;
+        transition: 0.2s;
+    }
+    input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+
+    button.primary { 
+        width: 100%; padding: 16px; 
+        background: var(--primary); color: white; 
+        border: none; border-radius: 16px; 
+        font-weight: 700; font-size: 1rem; cursor: pointer; 
+        transition: 0.3s;
+    }
+    button.primary:hover { background: var(--primary-hover); transform: translateY(-2px); }
+
+    /* Content Viewer */
+    #viewer { 
+        position: fixed; inset: 0; background: white; 
+        display: none; flex-direction: column; z-index: 200; 
+    }
+    .nav { 
+        padding: 16px 24px; background: white; 
+        border-bottom: 1px solid #f1f5f9; 
+        display: flex; justify-content: space-between; align-items: center; 
+    }
+    .btn-back { 
+        padding: 10px 20px; border-radius: 12px; border: 1px solid #e2e8f0;
+        background: white; font-weight: 700; cursor: pointer; transition: 0.2s;
+    }
+    .btn-back:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+    iframe { flex: 1; border: none; width: 100%; }
+    .active { display: flex !important; }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Edu<span>Portál</span> 🚀</h1>
+    <p class="subtitle">Kattints a tananyagra a hozzáféréshez</p>
+    
+    <div class="card-grid">
+        <div class="card" onclick="askKey('python')">
+            <span class="card-icon">🐍</span>
+            <h2>Python</h2>
+            <p>Programozási alapok</p>
+        </div>
+        <div class="card" onclick="askKey('sql')">
+            <span class="card-icon">🗄️</span>
+            <h2>SQL</h2>
+            <p>Adatbázis kezelés</p>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="loginModal">
+    <div class="modal">
+        <h3 id="mTitle">Kulcs szükséges</h3>
+        <input type="password" id="keyInput" placeholder="Titkosító kulcs..." onkeydown="if(event.key==='Enter') unlock()">
+        <button class="primary" onclick="unlock()">Tananyag feloldása</button>
+        <button onclick="closeModal()" style="background:none; border:none; color:var(--text-muted); margin-top:16px; cursor:pointer; font-weight: 600;">Mégse</button>
+    </div>
+</div>
+
+<div id="viewer">
+    <div class="nav">
+        <button class="btn-back" onclick="closeViewer()">← Vissza</button>
+        <strong id="vTitle" style="font-size: 1.1rem;">Tananyag</strong>
+        <div style="background: #ecfdf5; color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 700;">
+            Biztonságos kapcsolat
+        </div>
+    </div>
+    <iframe id="contentFrame"></iframe>
+</div>
+
+<script>
+    let selectedType = "";
+    const SOURCES = { python: "python.txt", sql: "sql.txt" };
+
+    function askKey(type) {
+        selectedType = type;
+        document.getElementById('mTitle').innerText = type.toUpperCase() + " feloldása";
+        document.getElementById('loginModal').classList.add('active');
+        document.getElementById('keyInput').focus();
+    }
+
+    function closeModal() {
+        document.getElementById('loginModal').classList.remove('active');
+        document.getElementById('keyInput').value = "";
+    }
+
+    async function unlock() {
+        const key = document.getElementById('keyInput').value;
+        const btn = document.querySelector('.primary');
+        const originalText = btn.innerText;
+
+        try {
+            btn.innerText = "Dekódolás...";
+            const resp = await fetch(SOURCES[selectedType]);
+            if (!resp.ok) throw new Error();
+            
+            const encrypted = await resp.text();
+            
+            const bytes = CryptoJS.AES.decrypt(encrypted.trim(), key);
+            const decodedHtml = bytes.toString(CryptoJS.enc.Utf8);
+
+            if (!decodedHtml || decodedHtml.length < 1) throw new Error();
+
+            const frame = document.getElementById('contentFrame');
+            const doc = frame.contentWindow.document;
+            doc.open();
+            doc.write(decodedHtml);
+            doc.close();
+
+            document.getElementById('vTitle').innerText = selectedType.toUpperCase() + " Kurzus";
+            document.getElementById('viewer').classList.add('active');
+            closeModal();
+        } catch (e) {
+            alert("⚠️ Sikertelen feloldás! Ellenőrizd a kulcsot.");
+        } finally {
+            btn.innerText = originalText;
+        }
+    }
+
+    function closeViewer() {
+        document.getElementById('viewer').classList.remove('active');
+        document.getElementById('contentFrame').src = "about:blank";
+    }
+
+    // Modal háttérre kattintva zárás
+    document.getElementById('loginModal').addEventListener('click', function(e) {
+        if(e.target === this) closeModal();
+    });
+</script>
+
+</body>
+</html>
