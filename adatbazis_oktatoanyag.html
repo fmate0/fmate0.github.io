@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adatbázis-kezelés I & II – Teljes Oktatóanyag</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1e2530;
+    --border: #30363d;
+    --accent: #00d4aa;
+    --accent2: #ff7b54;
+    --accent3: #a78bfa;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --sql-keyword: #ff79c6;
+    --sql-string: #f1fa8c;
+    --sql-number: #bd93f9;
+    --sql-comment: #6272a4;
+    --sql-function: #50fa7b;
+    --sql-table: #8be9fd;
+    --success: #3fb950;
+    --warning: #d29922;
+    --danger: #f85149;
+    --info: #58a6ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    background: linear-gradient(135deg, #0d1117 0%, #1a0a2e 40%, #0d2137 100%);
+    padding: 80px 40px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 40%, rgba(0,212,170,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(167,139,250,0.08) 0%, transparent 50%);
+    animation: pulse 8s ease-in-out infinite alternate;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1) rotate(0deg); }
+    100% { transform: scale(1.1) rotate(5deg); }
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.3);
+    color: var(--accent);
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto 32px;
+    position: relative;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .hero-stat {
+    text-align: center;
+  }
+  .hero-stat .num {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+    display: block;
+  }
+  .hero-stat .label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* ===== NAV ===== */
+  .sticky-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,17,23,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .sticky-nav ul {
+    list-style: none;
+    display: inline-flex;
+    gap: 0;
+  }
+  .sticky-nav ul li a {
+    display: block;
+    padding: 14px 18px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+    border-bottom: 2px solid transparent;
+  }
+  .sticky-nav ul li a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ===== LAYOUT ===== */
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ===== SECTIONS ===== */
+  .section {
+    padding: 60px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .section-num {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #0d1117;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+  .section-header h2 span { color: var(--accent); }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 32px 0 16px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h3::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: var(--accent2);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 24px 0 10px;
+    color: var(--accent3);
+  }
+
+  p { margin-bottom: 16px; color: var(--text); }
+
+  /* ===== INFO BOXES ===== */
+  .box {
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 20px 0;
+    border-left: 4px solid;
+    position: relative;
+  }
+  .box-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .box.info { background: rgba(88,166,255,0.08); border-color: var(--info); }
+  .box.info .box-title { color: var(--info); }
+  .box.success { background: rgba(63,185,80,0.08); border-color: var(--success); }
+  .box.success .box-title { color: var(--success); }
+  .box.warning { background: rgba(210,153,34,0.08); border-color: var(--warning); }
+  .box.warning .box-title { color: var(--warning); }
+  .box.danger { background: rgba(248,81,73,0.08); border-color: var(--danger); }
+  .box.danger .box-title { color: var(--danger); }
+  .box.accent { background: rgba(0,212,170,0.08); border-color: var(--accent); }
+  .box.accent .box-title { color: var(--accent); }
+
+  /* ===== CODE BLOCKS ===== */
+  .code-block {
+    background: #0a0e14;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 20px 0;
+    overflow: hidden;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .code-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .code-block pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .kw { color: var(--sql-keyword); font-weight: 600; }
+  .str { color: var(--sql-string); }
+  .num { color: var(--sql-number); }
+  .cm { color: var(--sql-comment); font-style: italic; }
+  .fn { color: var(--sql-function); }
+  .tbl { color: var(--sql-table); }
+  .op { color: #ff79c6; }
+
+  /* ===== TABLES ===== */
+  .db-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .db-table caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 700;
+    padding: 10px;
+    text-align: left;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.5px;
+  }
+  .db-table th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .db-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  .db-table tr:last-child td { border-bottom: none; }
+  .db-table tr:hover td { background: rgba(0,212,170,0.04); }
+  .pk { color: var(--accent2); font-weight: 700; }
+  .fk { color: var(--accent3); font-weight: 600; }
+  .null-val { color: var(--text-muted); font-style: italic; }
+
+  /* ===== ER DIAGRAM ===== */
+  .er-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 30px;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+  .er-entity {
+    display: inline-block;
+    background: var(--surface2);
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    min-width: 180px;
+    overflow: hidden;
+    vertical-align: top;
+  }
+  .er-entity-name {
+    background: var(--accent);
+    color: #0d1117;
+    padding: 8px 14px;
+    font-weight: 700;
+    font-size: 14px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .er-attr {
+    padding: 6px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .er-attr:last-child { border-bottom: none; }
+  .er-attr .pk-icon { color: var(--accent2); font-size: 10px; }
+  .er-attr .fk-icon { color: var(--accent3); font-size: 10px; }
+  .er-diagram {
+    display: flex;
+    gap: 60px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .er-relation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    padding-top: 40px;
+  }
+  .er-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .er-arrow { color: var(--accent3); font-size: 18px; }
+
+  /* ===== QUIZ ===== */
+  .quiz-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin: 24px 0;
+  }
+  .quiz-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .quiz-title::before {
+    content: '❓';
+    font-size: 1.2rem;
+  }
+  .quiz-question {
+    font-size: 15px;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .quiz-option {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .quiz-option:hover { border-color: var(--accent); background: rgba(0,212,170,0.06); }
+  .quiz-option.correct { border-color: var(--success); background: rgba(63,185,80,0.1); }
+  .quiz-option.wrong { border-color: var(--danger); background: rgba(248,81,73,0.1); }
+  .quiz-option .opt-letter {
+    width: 28px;
+    height: 28px;
+    background: var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .quiz-feedback {
+    display: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-top: 12px;
+  }
+
+  /* ===== PRACTICE ===== */
+  .practice-box {
+    background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(0,212,170,0.05));
+    border: 1px solid rgba(167,139,250,0.3);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0;
+  }
+  .practice-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .practice-badge {
+    background: var(--accent3);
+    color: #0d1117;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .practice-title {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .practice-steps {
+    counter-reset: steps;
+    list-style: none;
+    margin-top: 12px;
+  }
+  .practice-steps li {
+    counter-increment: steps;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+  .practice-steps li::before {
+    content: counter(steps);
+    width: 24px;
+    height: 24px;
+    background: var(--accent3);
+    color: #0d1117;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ===== RESULT DEMO ===== */
+  .result-demo {
+    background: #0a0e14;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+  .result-header {
+    padding: 8px 14px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .result-header span { color: var(--success); font-weight: 600; }
+
+  /* ===== CHIPS / TAGS ===== */
+  .chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 2px;
+  }
+  .chip-accent { background: rgba(0,212,170,0.15); color: var(--accent); border: 1px solid rgba(0,212,170,0.3); }
+  .chip-purple { background: rgba(167,139,250,0.15); color: var(--accent3); border: 1px solid rgba(167,139,250,0.3); }
+  .chip-orange { background: rgba(255,123,84,0.15); color: var(--accent2); border: 1px solid rgba(255,123,84,0.3); }
+
+  /* ===== GRID ===== */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 20px 0;
+  }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  @media (max-width: 768px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ===== CONCEPT CARDS ===== */
+  .concept-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .concept-card:hover { border-color: var(--accent); }
+  .concept-card .icon { font-size: 2rem; margin-bottom: 12px; }
+  .concept-card h4 { color: var(--accent); margin: 0 0 8px; font-size: 0.95rem; }
+  .concept-card p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+  /* ===== COMPARE TABLE ===== */
+  .compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  .compare-table th { background: var(--surface2); padding: 12px 16px; text-align: left; color: var(--accent); font-size: 13px; border: 1px solid var(--border); }
+  .compare-table td { padding: 10px 16px; border: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+  .compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+  /* ===== INLINE CODE ===== */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,212,170,0.1);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+
+  /* ===== DIVIDER ===== */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+    font-size: 14px;
+    border-top: 1px solid var(--border);
+  }
+  footer span { color: var(--accent); }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .section { animation: fadeInUp 0.5s ease both; }
+
+  /* SQL interactive */
+  .sql-result-table { width: 100%; border-collapse: collapse; }
+  .sql-result-table th { background: rgba(0,212,170,0.15); padding: 8px 12px; text-align: left; font-size: 12px; color: var(--accent); border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; }
+  .sql-result-table td { padding: 7px 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px; border-bottom: 1px solid rgba(48,54,61,0.4); }
+  .sql-result-table tr:last-child td { border-bottom: none; }
+  .rows-count { font-size: 12px; color: var(--text-muted); padding: 8px 12px; font-family: 'JetBrains Mono', monospace; }
+
+  .toggle-answer {
+    background: transparent;
+    border: 1px solid var(--accent3);
+    color: var(--accent3);
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Sora', sans-serif;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+  .toggle-answer:hover { background: rgba(167,139,250,0.1); }
+  .answer-reveal { display: none; margin-top: 16px; }
+  .answer-reveal.open { display: block; }
+
+  .flow-diagram {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+  .flow-step {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .flow-arrow { color: var(--accent); font-size: 18px; }
+  .flow-step.active { border-color: var(--accent); color: var(--accent); }
+
+  .normalization-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0;
+    position: relative;
+  }
+  .norm-badge {
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: var(--accent2);
+    color: #0d1117;
+    padding: 2px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<nav class="sticky-nav">
+  <ul>
+    <li><a href="#bevezeto">🏠 Bevezető</a></li>
+    <li><a href="#fogalmak">📖 Alapfogalmak</a></li>
+    <li><a href="#tervezes">📐 Tervezés & ER</a></li>
+    <li><a href="#normalizalas">🔄 Normalizálás</a></li>
+    <li><a href="#ddl">🏗️ DDL (Létrehozás)</a></li>
+    <li><a href="#dml">✏️ DML (Adatkezelés)</a></li>
+    <li><a href="#select">🔍 Lekérdezések</a></li>
+    <li><a href="#halado">⚡ Haladó SQL</a></li>
+    <li><a href="#mentés">💾 Mentés</a></li>
+    <li><a href="#db2">🚀 Adatbázis II</a></li>
+    <li><a href="#feladatok">🎯 Feladatok</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+
+<section class="section" id="bevezeto">
+  <div class="section-header">
+    <div class="section-num">00</div>
+    <h2>Bevezető – <span>Miért kell az adatbázis?</span></h2>
+  </div>
+
+  <p>Képzeld el, hogy egy iskola minden tanuló adatát <strong>Excel-fájlokban</strong> tárolja. Az egyik fájlban a személyes adatok, a másikban a jegyek, a harmadikban a tanárok neve… Hamarosan elvész minden, nehéz keresni, és ugyanaz az adat tucatnyi helyen szerepel.</p>
+
+  <div class="box info">
+    <div class="box-title">💡 Az adatbázis megoldása</div>
+    <p style="margin:0">Az adatbázis olyan <strong>szervezett adattár</strong>, ahol az adatok egymással kapcsolatban állnak, könnyen kereshetők, módosíthatók, és nem ismétlődnek feleslegesen.</p>
+  </div>
+
+  <div class="grid-3">
+    <div class="concept-card">
+      <div class="icon">🏪</div>
+      <h4>Webshop</h4>
+      <p>Termékek, rendelések, vásárlók, készlet — mind adatbázisban tárolva.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🏦</div>
+      <h4>Bank</h4>
+      <p>Számlák, tranzakciók, ügyfelek — milliók adatai pillanatok alatt elérhetők.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🎓</div>
+      <h4>Iskola</h4>
+      <p>Tanulók, jegyek, órarend, tanárok — összefüggő, rendezett adatok.</p>
+    </div>
+  </div>
+
+  <div class="box success">
+    <div class="box-title">✅ Mit fogsz tudni a végén?</div>
+    Tervezni adatbázist, létrehozni és feltölteni táblákat, komplex lekérdezéseket írni SQL-ben, kezelni felhasználókat és jogokat, tárolt eljárásokat, triggereket, és összekapcsolni adatbázist Java/C# alkalmazással.
+  </div>
+</section>
+
+<section class="section" id="fogalmak">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <h2><span>Alapfogalmak</span> – Az adatbázis világa</h2>
+  </div>
+
+  <div class="grid-2">
+    <div class="concept-card">
+      <div class="icon">📋</div>
+      <h4>Tábla (Table)</h4>
+      <p>Sorokból és oszlopokból álló adatszerkezet. Olyan, mint egy Excel-lap, de szabályokkal.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">📌</div>
+      <h4>Rekord / Sor (Row)</h4>
+      <p>Egy konkrét adatsor a táblában. Pl. egy tanuló összes adata.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🏷️</div>
+      <h4>Mező / Oszlop (Column)</h4>
+      <p>Egy adattípus az összes rekordra. Pl. "neve", "születési dátum".</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🔑</div>
+      <h4>Elsődleges kulcs (Primary Key)</h4>
+      <p>Egyedi azonosító minden rekordhoz. Két sor nem lehet azonos PK értékkel.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🔗</div>
+      <h4>Idegen kulcs (Foreign Key)</h4>
+      <p>Egy másik tábla elsődleges kulcsára hivatkozó mező – kapcsolatot hoz létre.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🗄️</div>
+      <h4>RDBMS</h4>
+      <p>Relációs adatbázis-kezelő rendszer. Pl. MySQL, PostgreSQL, SQL Server, Oracle.</p>
+    </div>
+  </div>
+
+  <h3>Szemléltetés: egy iskolai adatbázis</h3>
+  <p>Nézzük meg, hogyan néz ki egy valós táblázat az adatbázisban!</p>
+
+  <table class="db-table">
+    <caption>📋 TANULOK tábla</caption>
+    <tr><th>tanulo_id</th><th>nev</th><th>szuletesi_ev</th><th>osztaly</th><th>email</th></tr>
+    <tr><td class="pk">1</td><td>Kovács Anna</td><td>2007</td><td>11A</td><td>anna@iskola.hu</td></tr>
+    <tr><td class="pk">2</td><td>Nagy Péter</td><td>2008</td><td>10B</td><td>peter@iskola.hu</td></tr>
+    <tr><td class="pk">3</td><td>Szabó Eszter</td><td>2007</td><td>11A</td><td>eszter@iskola.hu</td></tr>
+    <tr><td class="pk">4</td><td>Tóth Bence</td><td>2006</td><td>12C</td><td>bence@iskola.hu</td></tr>
+  </table>
+
+  <table class="db-table">
+    <caption>📋 JEGYEK tábla</caption>
+    <tr><th>jegy_id</th><th>tanulo_id (FK)</th><th>tantargy</th><th>jegy</th><th>datum</th></tr>
+    <tr><td class="pk">1</td><td class="fk">1</td><td>Matematika</td><td>5</td><td>2024-03-15</td></tr>
+    <tr><td class="pk">2</td><td class="fk">1</td><td>Informatika</td><td>4</td><td>2024-03-16</td></tr>
+    <tr><td class="pk">3</td><td class="fk">2</td><td>Matematika</td><td>3</td><td>2024-03-15</td></tr>
+    <tr><td class="pk">4</td><td class="fk">3</td><td>Magyar</td><td>5</td><td>2024-03-17</td></tr>
+  </table>
+
+  <h3>Részletes magyarázat: Idegen Kulcs (Foreign Key)</h3>
+    <p>Az idegen kulcs biztosítja a <strong>hivatkozási integritást</strong> (Referential Integrity). Ez azt jelenti, hogy az adatbázis nem engedi meg, hogy olyan adatra hivatkozzunk, ami nem is létezik. A fenti példában a JEGYEK táblában lévő <code>tanulo_id</code> mező egy idegen kulcs, ami a TANULOK tábla <code>tanulo_id</code>-jára mutat.</p>
+  
+  <div class="box accent">
+    <div class="box-title">🔗 Mit akadályoz meg a Foreign Key?</div>
+    <ul style="margin-left: 20px; font-size: 14px;">
+      <li>Nem tudsz felvinni olyan jegyet a JEGYEK táblába, amelynél a <code>tanulo_id = 99</code>, ha a 99-es ID-jű tanuló nem létezik a TANULOK táblában.</li>
+      <li>Alapértelmezésben nem tudod letörölni az 1-es tanulót a TANULOK táblából, amíg vannak hozzá tartozó jegyek a JEGYEK táblában (ez a <code>RESTRICT</code> viselkedés).</li>
+    </ul>
+    <p style="margin-top: 10px; font-size: 14px;">Beállíthatjuk azt is, hogy ha törlünk egy tanulót, a rendszer automatikusan törölje az összes jegyét is. Ez a <strong>CASCADE</strong> törlés (<code>ON DELETE CASCADE</code>).</p>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="box danger">
+        <div class="box-title">❌ Redundáns (hibás) megoldás</div>
+        <p style="margin:0; font-size:13px;">Ha minden jegynél leírnánk a tanuló nevét is:<br>
+        "Kovács Anna — Matematika — 5"<br>
+        "Kovács Anna — Informatika — 4"<br>
+        Ha Anna neve megváltozik, <strong>100 helyen kell javítani</strong>!</p>
+      </div>
+    </div>
+    <div>
+      <div class="box success">
+        <div class="box-title">✅ Helyes megoldás</div>
+        <p style="margin:0; font-size:13px;">Csak a tanulo_id-t tároljuk a jegyeknél. A nevet <strong>egyetlen helyen</strong> tároljuk, a TANULOK táblában. Ha változik, csak ott kell módosítani.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="quiz-container" id="quiz1">
+    <div class="quiz-title">Teszteld a tudásod!</div>
+    <div class="quiz-question">Mi az elsődleges kulcs (Primary Key) szerepe?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" onclick="checkAnswer(this,'quiz1',false)"><span class="opt-letter">A</span> Egy másik táblára hivatkozik</div>
+      <div class="quiz-option" onclick="checkAnswer(this,'quiz1',true)"><span class="opt-letter">B</span> Minden sor egyedi azonosítója</div>
+      <div class="quiz-option" onclick="checkAnswer(this,'quiz1',false)"><span class="opt-letter">C</span> Az adatok titkosítása</div>
+      <div class="quiz-option" onclick="checkAnswer(this,'quiz1',false)"><span class="opt-letter">D</span> Az adatok rendezése</div>
+    </div>
+    <div class="quiz-feedback" id="quiz1-feedback"></div>
+  </div>
+</section>
+
+<section class="section" id="tervezes">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <h2>Adatbázis <span>Tervezés & ER-modell</span></h2>
+  </div>
+
+  <p>Az adatbázist tervezni kell, mielőtt megírjuk a kódot! A tervezés lépései:</p>
+
+  <div class="flow-diagram">
+    <div class="flow-step active">1. Követelmények</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step active">2. ER-modell</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step active">3. Relációs modell</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step active">4. SQL-táblák</div>
+  </div>
+
+  <h3>Az ER-modell (Egyed-Kapcsolat Modell)</h3>
+  <p>Az <strong>ER-diagram</strong> egy grafikus eszköz, amivel lerajzolhatjuk az adatbázis struktúráját, még mielőtt bármit kódolnánk.</p>
+
+  <div class="box info">
+    <div class="box-title">📘 ER-modell elemei</div>
+    <div class="grid-3">
+      <div>
+        <strong style="color:var(--accent)">Egyed (Entity)</strong><br>
+        <span style="font-size:13px">Valami, amiről adatot tárolunk. Pl. TANULÓ, TANTÁRGY</span>
+      </div>
+      <div>
+        <strong style="color:var(--accent2)">Attribútum</strong><br>
+        <span style="font-size:13px">Az egyed tulajdonsága. Pl. tanuló neve, születési dátuma</span>
+      </div>
+      <div>
+        <strong style="color:var(--accent3)">Kapcsolat (Relationship)</strong><br>
+        <span style="font-size:13px">Egyedek közötti összefüggés. Pl. "felveszi" (tanuló–tantárgy)</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>ER-diagram szemléltetése</h3>
+
+  <div class="er-container">
+    <div class="er-diagram">
+      <div class="er-entity">
+        <div class="er-entity-name">TANULÓ</div>
+        <div class="er-attr"><span class="pk-icon">🔑</span> tanulo_id</div>
+        <div class="er-attr">nev</div>
+        <div class="er-attr">szuletesi_ev</div>
+        <div class="er-attr">email</div>
+        <div class="er-attr">osztaly_id (FK)</div>
+      </div>
+      <div class="er-relation">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">N</div>
+        <div class="er-line"><span class="er-arrow">←──</span></div>
+        <div style="font-size:11px;color:var(--accent3);margin:4px 0;font-weight:700">tanul</div>
+        <div class="er-line"><span class="er-arrow">──→</span></div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px">M</div>
+      </div>
+      <div class="er-entity">
+        <div class="er-entity-name">TANTÁRGY</div>
+        <div class="er-attr"><span class="pk-icon">🔑</span> tantargy_id</div>
+        <div class="er-attr">nev</div>
+        <div class="er-attr">heti_ora</div>
+        <div class="er-attr">tanar_id (FK)</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Kapcsolattípusok</h3>
+  <table class="compare-table">
+    <tr><th>Típus</th><th>Jelentés</th><th>Példa</th><th>Megvalósítás</th></tr>
+    <tr>
+      <td><span class="chip chip-accent">1:1</span></td>
+      <td>Egy rekordhoz pontosan egy másik kapcsolódik</td>
+      <td>Személyi igazolvány ↔ Személy</td>
+      <td>FK az egyik táblában + UNIQUE</td>
+    </tr>
+    <tr>
+      <td><span class="chip chip-orange">1:N</span></td>
+      <td>Egy rekordhoz több másik kapcsolódhat</td>
+      <td>Osztály → sok Tanuló</td>
+      <td>FK a "sok" oldalon</td>
+    </tr>
+    <tr>
+      <td><span class="chip chip-purple">N:M</span></td>
+      <td>Mindkét oldalon lehet több kapcsolat</td>
+      <td>Tanuló ↔ Tantárgy (sok felvesz sokat)</td>
+      <td>Közbülső (kapcsoló) tábla</td>
+    </tr>
+  </table>
+</section>
+
+<section class="section" id="normalizalas">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <h2><span>Normalizálás</span> – A szabályos adatbázis</h2>
+  </div>
+
+  <p>A normalizálás olyan szabályok sorozata, amelyek biztosítják, hogy az adatbázisunk <strong>redundanciamentes</strong> és <strong>anomáliáktól mentes</strong> legyen.</p>
+
+  <div class="box warning">
+    <div class="box-title">⚠️ Miért fontos?</div>
+    Normalizálás nélkül az adatbázis tele lehet felesleges ismétlésekkel, ami lassítja a rendszert és adatveszteséghez vagy inkonzisztenciához vezet.
+  </div>
+
+  <h3>1. Normálforma (1NF)</h3>
+  <div class="normalization-step">
+    <div class="norm-badge">1NF</div>
+    <p style="margin-top:8px"><strong>Szabály:</strong> Minden mező atomikus (oszthatatlan) értéket tartalmazzon. Ne legyenek ismétlődő csoportok.</p>
+  </div>
+
+  <h3>2. Normálforma (2NF)</h3>
+  <div class="normalization-step">
+    <div class="norm-badge">2NF</div>
+    <p style="margin-top:8px"><strong>Szabály:</strong> Teljesül az 1NF, és minden nem-kulcs attribútum <em>teljes</em> függőséggel függ az elsődleges kulcstól.</p>
+  </div>
+
+  <h3>3. Normálforma (3NF)</h3>
+  <div class="normalization-step">
+    <div class="norm-badge">3NF</div>
+    <p style="margin-top:8px"><strong>Szabály:</strong> Teljesül a 2NF, és nincsenek tranzitív függőségek (nem-kulcs mező nem függhet másik nem-kulcs mezőtől).</p>
+  </div>
+</section>
+
+<section class="section" id="ddl">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <h2><span>DDL</span> – Adatbázis és Tábla Létrehozása</h2>
+  </div>
+
+  <p>A <strong>DDL (Data Definition Language)</strong> parancsokkal hozzuk létre, módosítjuk és töröljük az adatbázis strukturális elemeit (táblákat, indexeket stb.).</p>
+
+  <div class="grid-3">
+    <div class="concept-card"><div class="icon">🆕</div><h4>CREATE</h4><p>Adatbázis, tábla, index létrehozása</p></div>
+    <div class="concept-card"><div class="icon">✏️</div><h4>ALTER</h4><p>Meglévő struktúra módosítása</p></div>
+    <div class="concept-card"><div class="icon">🗑️</div><h4>DROP</h4><p>Adatbázis, tábla, index törlése</p></div>
+  </div>
+
+  <h3>Tábla létrehozása – részletes példa</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><span class="code-label">Iskolai adatbázis táblák</span></div>
+    <pre><span class="cm">-- =============================================
+-- OSZTÁLYOK tábla (előbb kell létrehozni!)
+-- =============================================</span>
+<span class="kw">CREATE TABLE</span> <span class="tbl">osztályok</span> (
+    osztaly_id  <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT</span>,
+    nev         <span class="fn">VARCHAR</span>(<span class="num">10</span>) <span class="kw">NOT NULL</span>,
+    evfolyam    <span class="fn">INT</span> <span class="kw">NOT NULL</span>,
+    
+    <span class="kw">PRIMARY KEY</span> (osztaly_id)
+);
+
+<span class="cm">-- =============================================
+-- TANULÓK tábla
+-- =============================================</span>
+<span class="kw">CREATE TABLE</span> <span class="tbl">tanulok</span> (
+    tanulo_id       <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT</span>,
+    nev             <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>,
+    szuletesi_datum <span class="fn">DATE</span>,
+    email           <span class="fn">VARCHAR</span>(<span class="num">150</span>) <span class="kw">UNIQUE</span>,
+    osztaly_id      <span class="fn">INT</span> <span class="kw">NOT NULL</span>,
+    aktiv           <span class="fn">BOOLEAN</span> <span class="kw">DEFAULT</span> <span class="kw">TRUE</span>,
+    
+    <span class="kw">PRIMARY KEY</span> (tanulo_id),
+    <span class="kw">FOREIGN KEY</span> (osztaly_id) <span class="kw">REFERENCES</span> <span class="tbl">osztályok</span>(osztaly_id)
+        <span class="kw">ON DELETE RESTRICT</span>
+        <span class="kw">ON UPDATE CASCADE</span>
+);</pre>
+  </div>
+</section>
+
+<section class="section" id="dml">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <h2><span>DML</span> – Adatok Kezelése (CRUD)</h2>
+  </div>
+
+  <p>A <strong>DML (Data Manipulation Language)</strong> parancsokkal kezeljük a táblákon belüli adatokat. Ez a legtöbbet használt SQL-rész!</p>
+
+  <div class="grid-2">
+    <div class="concept-card"><div class="icon">➕</div><h4>INSERT</h4><p>Új sor(ok) hozzáadása a táblához</p></div>
+    <div class="concept-card"><div class="icon">🔄</div><h4>UPDATE</h4><p>Meglévő sorok adatainak módosítása</p></div>
+    <div class="concept-card"><div class="icon">🗑️</div><h4>DELETE</h4><p>Sorok törlése a táblából</p></div>
+    <div class="concept-card"><div class="icon">🔍</div><h4>SELECT</h4><p>Adatok lekérdezése (a következő fejezetben)</p></div>
+  </div>
+  
+  <div class="box danger">
+    <div class="box-title">🚨 VESZÉLY: WHERE nélküli UPDATE/DELETE</div>
+    <p style="margin:0">Ha elfelejtjük a <code>WHERE</code> feltételt, az <code>UPDATE</code> az összes sort módosítja, a <code>DELETE</code> az összes sort törli! <strong>Mindig ellenőrizd a WHERE feltételt!</strong></p>
+  </div>
+</section>
+
+<section class="section" id="select">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <h2><span>SELECT</span> – Lekérdezések mesterfokon</h2>
+  </div>
+
+  <p>A <code>SELECT</code> utasítás az adatbázis "lelke" — ezzel kérdezzük le az adatokat. Megtanulása talán a legfontosabb SQL-készség!</p>
+
+  <h3>A SELECT felépítése (és a végrehajtás sorrendje)</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><span class="code-label">SELECT szintaxis</span></div>
+    <pre><span class="kw">SELECT</span>   <span class="cm">-- 5. Mely oszlopokat kérjük (vagy számított mezők)</span>
+<span class="kw">FROM</span>     <span class="cm">-- 1. Melyik táblából indulunk</span>
+<span class="kw">WHERE</span>    <span class="cm">-- 2. Szűrés az eredeti sorokon</span>
+<span class="kw">GROUP BY</span> <span class="cm">-- 3. Csoportok képzése (pl. tantárgyanként)</span>
+<span class="kw">HAVING</span>   <span class="cm">-- 4. Szűrés már a csoportokon (pl. ahol az átlag > 3)</span>
+<span class="kw">ORDER BY</span> <span class="cm">-- 6. A végeredmény rendezése</span>
+<span class="kw">LIMIT</span>    <span class="cm">-- 7. Visszaadott sorok számának korlátozása</span></pre>
+  </div>
+
+  <h3>GROUP BY és Részletes HAVING Magyarázat</h3>
+  <p>A <code>GROUP BY</code> csoportosítja a sorokat, majd egy aggregáló függvénnyel (pl. SUM, AVG, COUNT) összesíti őket. De mi a különbség a WHERE és a HAVING között?</p>
+  
+  <div class="box info">
+    <div class="box-title">🔍 WHERE vs. HAVING</div>
+    <p style="margin-top: 5px; font-size: 14px;">
+    A <strong>WHERE</strong> az aggregálás (csoportosítás) <em>előtt</em> fut le. Csak az eredeti tábla sorait tudja szűrni. (pl. <code>WHERE osztaly = '11A'</code>).<br><br>
+    A <strong>HAVING</strong> az aggregálás <em>után</em> fut le. Ezzel tudsz szűrni az aggregáló függvények eredményére (pl. <code>HAVING AVG(jegy) > 3.5</code>). <em>Ezt WHERE-rel lehetetlen megcsinálni, mert a WHERE idején még nem léteznek a kiszámolt átlagok!</em>
+    </p>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><span class="code-label">GROUP BY + HAVING Példa</span></div>
+    <pre><span class="cm">-- Csak azok a tantárgyak, ahol az átlag > 3.5</span>
+<span class="kw">SELECT</span>
+    tantargy,
+    <span class="fn">AVG</span>(jegy) <span class="kw">AS</span> atlag
+<span class="kw">FROM</span> <span class="tbl">jegyek</span>
+<span class="kw">GROUP BY</span> tantargy
+<span class="kw">HAVING</span> <span class="fn">AVG</span>(jegy) <span class="op">&gt;</span> <span class="num">3.5</span>
+<span class="kw">ORDER BY</span> atlag <span class="kw">DESC</span>;</pre>
+  </div>
+
+  <h3>Részletes JOIN Magyarázat – Táblák összekapcsolása</h3>
+    <p>A relációs adatbázisokban az adatok darabokban (több táblában) vannak. A lekérdezéseknél ezeket újra össze kell fűznünk. Erre valók a JOIN utasítások.</p>
+
+  <table class="compare-table">
+    <tr>
+      <th>JOIN Típus</th>
+      <th>Leírás</th>
+      <th>Mikor használjuk?</th>
+    </tr>
+    <tr>
+      <td><strong>INNER JOIN</strong></td>
+      <td>Csak azokat a sorokat adja vissza, amelyek <strong>mindkét táblában</strong> megtalálhatók és összekapcsolhatók.</td>
+      <td>Ha csak azokat a tanulókat akarod látni, akiknek <em>biztosan</em> van jegyük.</td>
+    </tr>
+    <tr>
+      <td><strong>LEFT JOIN</strong></td>
+      <td>A "bal" (első) tábla <strong>összes sorát</strong> visszaadja, és mellé teszi a jobb tábla adatait. Ha a jobb oldalon nincs adat, <code>NULL</code> értéket ad.</td>
+      <td>Ha az <em>összes</em> tanulót látni akarod, függetlenül attól, hogy kaptak-e már jegyet (akik nem, azoknál NULL lesz a jegy).</td>
+    </tr>
+    <tr>
+      <td><strong>RIGHT JOIN</strong></td>
+      <td>Ugyanaz, mint a LEFT JOIN, csak a "jobb" (második) tábla összes sorát tartja meg. Ritkán használjuk, mert felcserélhető egy LEFT JOIN-nal.</td>
+      <td>Ha az <em>összes</em> jegyet/tantárgyat látni akarjuk, még akkor is, ha valamiért nem tartozik hozzájuk tanuló.</td>
+    </tr>
+    <tr>
+      <td><strong>FULL OUTER JOIN</strong></td>
+      <td>Visszaadja a bal ÉS a jobb tábla összes sorát is. (MySQL-ben nincs natív FULL OUTER JOIN, helyette egy LEFT JOIN és egy RIGHT JOIN <code>UNION</code>-ját használjuk).</td>
+      <td>Ha mindkét oldalról látni akarod a páratlanul maradt adatokat is.</td>
+    </tr>
+  </table>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><span class="code-label">LEFT JOIN Példa</span></div>
+    <pre><span class="cm">-- Kilistáz minden tanulót. Ahol nincs jegy, ott NULL lesz az érték.</span>
+<span class="kw">SELECT</span>
+    t.nev,
+    j.tantargy,
+    j.jegy
+<span class="kw">FROM</span> <span class="tbl">tanulok</span> t
+<span class="kw">LEFT JOIN</span> <span class="tbl">jegyek</span> j <span class="kw">ON</span> t.tanulo_id <span class="op">=</span> j.tanulo_id;</pre>
+  </div>
+
+</section>
+
+<section class="section" id="feladatok">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <h2>🎯 <span>Komplex Gyakorló Feladatok</span></h2>
+  </div>
+
+  <p>Oldd meg az alábbi tematikus lekérdezéseket! A feladatok fokozatosan nehezednek. A szükséges adatbázis-séma felépítését a lenyíló fülek alatt találod. (A megoldásokat kérd le egy külön szövegfájlként az AI-tól!)</p>
+
+  <div class="practice-box">
+    <div class="practice-header">
+      <span class="practice-badge">Téma 1</span>
+      <span class="practice-title">Galaktikus Űrügynökség (SpaceX-szerű)</span>
+    </div>
+    <p style="font-size:14px; margin-bottom: 10px;">A Föld legnagyobb űrügynöksége az űrrepülések nyilvántartására készített adatbázist. Kezelik az űrhajósokat, a küldetéseket, és azt, hogy ki melyik küldetésen vett részt.</p>
+    
+    <button class="toggle-answer" onclick="toggleAnswer('schema1')">🔧 SQL Séma megtekintése (Adatok létrehozása) ▼</button>
+    <div class="answer-reveal" id="schema1">
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">SQL</span><span class="code-label">Űrügynökség Séma</span></div>
+        <pre><span class="kw">CREATE TABLE</span> <span class="tbl">urhajosok</span> (
+    urhajos_id <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT PRIMARY KEY</span>,
+    nev <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>,
+    nemzetiseg <span class="fn">VARCHAR</span>(<span class="num">50</span>),
+    statusz <span class="fn">VARCHAR</span>(<span class="num">20</span>) <span class="kw">DEFAULT</span> <span class="str">'Aktív'</span>
+);
+
+<span class="kw">CREATE TABLE</span> <span class="tbl">kuldetesek</span> (
+    kuldetes_id <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT PRIMARY KEY</span>,
+    megnevezes <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>,
+    inditas_dauma <span class="fn">DATE</span>,
+    idotartam_nap <span class="fn">INT</span>
+);
+
+<span class="kw">CREATE TABLE</span> <span class="tbl">resztvetelek</span> (
+    resztvetel_id <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT PRIMARY KEY</span>,
+    urhajos_id <span class="fn">INT</span>,
+    kuldetes_id <span class="fn">INT</span>,
+    szerepkor <span class="fn">VARCHAR</span>(<span class="num">50</span>),
+    <span class="kw">FOREIGN KEY</span> (urhajos_id) <span class="kw">REFERENCES</span> <span class="tbl">urhajosok</span>(urhajos_id),
+    <span class="kw">FOREIGN KEY</span> (kuldetes_id) <span class="kw">REFERENCES</span> <span class="tbl">kuldetesek</span>(kuldetes_id)
+);
+
+<span class="cm">-- (Képzelj ide néhány INSERT INTO utasítást...)</span></pre>
+      </div>
+    </div>
+
+    <ul class="practice-steps" style="margin-top: 15px;">
+      <li><strong>(Könnyű)</strong> Listázd az összes 'Aktív' státuszú űrhajós nevét és nemzetiségét!</li>
+      <li><strong>(Könnyű)</strong> Hány napig tartott a leghosszabb rögzített küldetés a <code>kuldetesek</code> tábla alapján?</li>
+      <li><strong>(Közepes)</strong> Listázd a küldetések nevét és a hozzájuk beosztott űrhajósok számát! Segítség: Használj <code>JOIN</code>-t és <code>GROUP BY</code>-t.</li>
+      <li><strong>(Közepes)</strong> Listázd ki a 'Parancsnok' szerepkörben repült űrhajósok nevét és a küldetésük megnevezését!</li>
+      <li><strong>(Haladó)</strong> Listázd azokat az űrhajósokat, akik még egyetlen küldetésen sem vettek részt! <em>(Tipp: LEFT JOIN és IS NULL)</em></li>
+      <li><strong>(Haladó)</strong> Keresd meg azt az űrhajóst (vagy űrhajósokat), aki a legtöbb összesített napot töltötte az űrben az összes eddigi küldetése alapján!</li>
+    </ul>
+  </div>
+
+  <div class="practice-box">
+    <div class="practice-header">
+      <span class="practice-badge">Téma 2</span>
+      <span class="practice-title">Varázslóakadémia</span>
+    </div>
+    <p style="font-size:14px; margin-bottom: 10px;">Egy titkos varázslóiskola az adatbázisában tárolja a házakat, a diákokat és az általuk megtanult varázsigéket. A pontrendszer és a tanult képességek nyomon követése a cél.</p>
+    
+    <button class="toggle-answer" onclick="toggleAnswer('schema2')">🔧 SQL Séma megtekintése (Adatok létrehozása) ▼</button>
+    <div class="answer-reveal" id="schema2">
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">SQL</span><span class="code-label">Varázslóiskola Séma</span></div>
+        <pre><span class="kw">CREATE TABLE</span> <span class="tbl">hazak</span> (
+    haz_id <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT PRIMARY KEY</span>,
+    haz_neve <span class="fn">VARCHAR</span>(<span class="num">50</span>) <span class="kw">NOT NULL</span>,
+    alapito <span class="fn">VARCHAR</span>(<span class="num">100</span>)
+);
+
+<span class="kw">CREATE TABLE</span> <span class="tbl">diakok</span> (
+    diak_id <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT PRIMARY KEY</span>,
+    nev <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>,
+    haz_id <span class="fn">INT</span>,
+    evfolyam <span class="fn">INT</span>,
+    kepesseg_szint <span class="fn">INT</span> <span class="kw">DEFAULT</span> <span class="num">0</span>,
+    <span class="kw">FOREIGN KEY</span> (haz_id) <span class="kw">REFERENCES</span> <span class="tbl">hazak</span>(haz_id)
+);
+
+<span class="kw">CREATE TABLE</span> <span class="tbl">varazsigek</span> (
+    varazsige_id <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT PRIMARY KEY</span>,
+    nev <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>,
+    tipus <span class="fn">VARCHAR</span>(<span class="num">50</span>) <span class="cm">-- pl. Tűz, Sötét, Védekező</span>
+);
+
+<span class="kw">CREATE TABLE</span> <span class="tbl">tanult_varazsigek</span> (
+    diak_id <span class="fn">INT</span>,
+    varazsige_id <span class="fn">INT</span>,
+    elsajatitva_datum <span class="fn">DATE</span>,
+    <span class="kw">PRIMARY KEY</span> (diak_id, varazsige_id),
+    <span class="kw">FOREIGN KEY</span> (diak_id) <span class="kw">REFERENCES</span> <span class="tbl">diakok</span>(diak_id),
+    <span class="kw">FOREIGN KEY</span> (varazsige_id) <span class="kw">REFERENCES</span> <span class="tbl">varazsigek</span>(varazsige_id)
+);</pre>
+      </div>
+    </div>
+
+    <ul class="practice-steps" style="margin-top: 15px;">
+      <li><strong>(Könnyű)</strong> Listázd az összes 'Tűz' típusú varázsigét név szerint rendezve!</li>
+      <li><strong>(Könnyű)</strong> Számold össze, hány diák jár a 'Griffendél' (vagy tetszőleges) házba!</li>
+      <li><strong>(Közepes)</strong> Írasd ki minden diák nevét és a háza nevét! Ha egy diáknak még nincs beosztott háza (NULL), a neve akkor is jelenjen meg!</li>
+      <li><strong>(Közepes)</strong> Melyik az a varázsige, amit a legtöbb diák sikeresen elsajátított? Mutasd a varázsige nevét és a megtanulók számát!</li>
+      <li><strong>(Haladó)</strong> Listázd azokat a házakat, ahol a diákok átlagos varázserő-pontszáma (kepesseg_szint) meghaladja a 80-at! <em>(Tipp: HAVING)</em></li>
+    </ul>
+  </div>
+
+  <div class="practice-box">
+    <div class="practice-header">
+      <span class="practice-badge">Téma 3</span>
+      <span class="practice-title">Cyberpunk Kiber-Klinika</span>
+    </div>
+    <p style="font-size:14px; margin-bottom: 10px;">A 2077-es évben járunk. A Kiber-Klinika a kliensek króm (kibernetikus implantátumok) beültetésével foglalkozik. Az adatbázisnak bírnia kell a terhelést a fekete piaccal szemben.</p>
+    
+    <button class="toggle-answer" onclick="toggleAnswer('schema3')">🔧 SQL Séma megtekintése (Adatok létrehozása) ▼</button>
+    <div class="answer-reveal" id="schema3">
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">SQL</span><span class="code-label">Kiber-Klinika Séma</span></div>
+        <pre><span class="kw">CREATE TABLE</span> <span class="tbl">kliensek</span> (
+    kliens_id <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT PRIMARY KEY</span>,
+    nev <span class="fn">VARCHAR</span>(<span class="num">150</span>) <span class="kw">NOT NULL</span>,
+    egyenleg_kredit <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>) <span class="kw">DEFAULT</span> <span class="num">0.00</span>
+);
+
+<span class="kw">CREATE TABLE</span> <span class="tbl">implantatumok</span> (
+    impl_id <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT PRIMARY KEY</span>,
+    megnevezes <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>,
+    ar_kredit <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>) <span class="kw">NOT NULL</span>,
+    kockazati_szint <span class="fn">INT</span> <span class="cm">-- 1(Biztonságos) - 5(Halálos)</span>
+);
+
+<span class="kw">CREATE TABLE</span> <span class="tbl">mutetek</span> (
+    mutet_id <span class="fn">INT</span> <span class="kw">AUTO_INCREMENT PRIMARY KEY</span>,
+    kliens_id <span class="fn">INT</span> <span class="kw">NOT NULL</span>,
+    impl_id <span class="fn">INT</span> <span class="kw">NOT NULL</span>,
+    mutet_datum <span class="fn">DATE</span>,
+    sikeres <span class="fn">BOOLEAN</span> <span class="kw">DEFAULT</span> <span class="kw">TRUE</span>,
+    <span class="kw">FOREIGN KEY</span> (kliens_id) <span class="kw">REFERENCES</span> <span class="tbl">kliensek</span>(kliens_id),
+    <span class="kw">FOREIGN KEY</span> (impl_id) <span class="kw">REFERENCES</span> <span class="tbl">implantatumok</span>(impl_id)
+);</pre>
+      </div>
+    </div>
+
+    <ul class="practice-steps" style="margin-top: 15px;">
+      <li><strong>(Könnyű)</strong> Rendezd a klienseket az egyenlegük alapján csökkenő sorrendbe, és mutasd csak az első 5 leggazdagabbat!</li>
+      <li><strong>(Könnyű)</strong> Lekérdezés, ami listázza azokat az implantátumokat, melyek kockázati szintje eléri az 5-öt!</li>
+      <li><strong>(Közepes)</strong> Melyik implantátumból ültették be a legtöbbet sikeresen 2077-ben? <em>(Tipp: YEAR(mutet_datum) és LIMIT)</em></li>
+      <li><strong>(Haladó)</strong> Írj egy lekérdezést, amely megmutatja azon kliensek nevét, akiknek a műtétjeik (akár sikeres, akár nem) eddigi <strong>összköltsége meghaladja a jelenlegi egyenlegüket</strong>!</li>
+    </ul>
+  </div>
+
+  <h3 style="margin-top: 40px;">📋 Összefoglaló: Minden SQL parancs egy helyen</h3>
+  <table class="compare-table">
+    <tr><th>Kategória</th><th>Parancs</th><th>Mire való</th></tr>
+    <tr><td rowspan="3"><span class="chip chip-accent">DDL</span></td><td><code>CREATE</code></td><td>Adatbázis, tábla, view, index létrehozása</td></tr>
+    <tr><td><code>ALTER</code></td><td>Struktúra módosítása</td></tr>
+    <tr><td><code>DROP</code></td><td>Objektumok törlése</td></tr>
+    <tr><td rowspan="4"><span class="chip chip-orange">DML</span></td><td><code>SELECT</code></td><td>Adatok lekérdezése</td></tr>
+    <tr><td><code>INSERT</code></td><td>Új sorok felvitele</td></tr>
+    <tr><td><code>UPDATE</code></td><td>Meglévő sorok módosítása</td></tr>
+    <tr><td><code>DELETE</code></td><td>Sorok törlése</td></tr>
+    <tr><td rowspan="3"><span class="chip chip-purple">DCL/TCL</span></td><td><code>GRANT / REVOKE</code></td><td>Jogosultságok kezelése</td></tr>
+    <tr><td><code>COMMIT</code></td><td>Tranzakció véglegesítése</td></tr>
+    <tr><td><code>ROLLBACK</code></td><td>Tranzakció visszavonása</td></tr>
+  </table>
+</section>
+
+</div><footer>
+  <p>📚 Adatbázis-kezelés I & II — Oktatóanyag</p>
+  <p style="margin-top:8px">Felépítve a <span>Szoftverfejlesztő és -tesztelő</span> szakma programtanterve alapján · 2024</p>
+</footer>
+
+<script>
+function checkAnswer(el, quizId, isCorrect) {
+  const options = el.closest('.quiz-options').querySelectorAll('.quiz-option');
+  options.forEach(opt => opt.style.pointerEvents = 'none');
+
+  if (isCorrect) {
+    el.classList.add('correct');
+    el.querySelector('.opt-letter').style.background = 'var(--success)';
+    el.querySelector('.opt-letter').style.color = '#0d1117';
+    const fb = document.getElementById(quizId + '-feedback');
+    fb.style.display = 'block';
+    fb.style.background = 'rgba(63,185,80,0.1)';
+    fb.style.border = '1px solid var(--success)';
+    fb.style.color = 'var(--success)';
+    fb.innerHTML = '✅ Helyes! Jól gondoltad!';
+  } else {
+    el.classList.add('wrong');
+    el.querySelector('.opt-letter').style.background = 'var(--danger)';
+    el.querySelector('.opt-letter').style.color = '#0d1117';
+    // Highlight correct
+    options.forEach(opt => {
+      if (opt.onclick.toString().includes('true')) {
+        opt.classList.add('correct');
+        opt.querySelector('.opt-letter').style.background = 'var(--success)';
+        opt.querySelector('.opt-letter').style.color = '#0d1117';
+      }
+    });
+    const fb = document.getElementById(quizId + '-feedback');
+    fb.style.display = 'block';
+    fb.style.background = 'rgba(248,81,73,0.1)';
+    fb.style.border = '1px solid var(--danger)';
+    fb.style.color = 'var(--danger)';
+    fb.innerHTML = '❌ Nem ez a helyes válasz. A zöld jelöli a helyeset!';
+  }
+}
+
+function toggleAnswer(id) {
+  const el = document.getElementById(id);
+  const btn = el.previousElementSibling;
+  if (el.classList.contains('open')) {
+    el.classList.remove('open');
+    btn.textContent = btn.textContent.replace('▲', '▼');
+  } else {
+    el.classList.add('open');
+    btn.textContent = btn.textContent.replace('▼', '▲');
+  }
+}
+</script>
+</body>
+</html>

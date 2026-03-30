@@ -146,6 +146,12 @@
             <h2>SQL</h2>
             <p>Adatbázis kezelés</p>
         </div>
+
+        <div class="card" onclick="askKey('sqlpractice')">
+            <span class="card-icon">🗄️</span>
+            <h2>SQL gyakorló</h2>
+            <p>Interaktív gyakorlófelület</p>
+        </div>
     </div>
 </div>
 
@@ -171,7 +177,7 @@
 
 <script>
     let selectedType = "";
-    const SOURCES = { python: "python.txt", sql: "sql.txt" };
+    const SOURCES = { python: "python.txt", sql: "sql.txt", sqlpractice: "sql-practice.txt" };
 
     function askKey(type) {
         selectedType = type;
